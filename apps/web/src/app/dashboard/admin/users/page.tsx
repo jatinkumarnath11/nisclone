@@ -67,7 +67,9 @@ export default function AdminUsersPage() {
     let token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (!token) {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1';
+        const apiUrl = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+          ? '/api/v1'
+          : (process.env.NEXT_PUBLIC_API_URL || '/api/v1');
         const res = await fetch(`${apiUrl}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

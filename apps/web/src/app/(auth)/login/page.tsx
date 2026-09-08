@@ -22,14 +22,24 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1'}/auth/login`, {
+      const apiUrl = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+        ? '/api/v1'
+        : (process.env.NEXT_PUBLIC_API_URL || '/api/v1');
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const errorText = await response.text();
+        throw new Error('Server returned an unexpected response. Please try again or check connection.');
+      }
+
       const resData = await response.json();
       if (!response.ok || !resData.success) {
-        throw new Error(resData?.error?.message || 'Login failed. Please check credentials.');
+        throw new Error(resData?.error?.message || 'Invalid email or password.');
       }
       if (resData.data?.tokens?.accessToken) {
         localStorage.setItem('token', resData.data.tokens.accessToken);
@@ -44,8 +54,8 @@ export default function LoginPage() {
     }
   };
 
-
   const devRoles = [
+    { name: 'Jatin (Admin)', email: 'jatinkumarnath110907@gmail.com', role: 'admin' },
     { name: 'Admin', email: 'admin@ums.edu', role: 'admin' },
     { name: 'Student', email: 'student@ums.edu', role: 'student' },
     { name: 'Faculty', email: 'faculty@ums.edu', role: 'faculty' },
